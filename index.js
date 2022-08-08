@@ -1,8 +1,12 @@
 const express = require('express')
+const cors = require('cors')
 var morgan = require('morgan')
 
 const app = express()
 app.use(express.json())
+app.use(cors())
+app.use(express.static('build'))
+
 app.use(
   morgan(function (tokens, req, res) {
     return [
@@ -92,6 +96,7 @@ let persons =
       number: body.number,
       id: generateId(),
     }
+    persons.push(newPerson)
     response.json(newPerson)
   })  
 
