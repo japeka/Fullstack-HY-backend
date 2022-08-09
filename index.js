@@ -1,12 +1,24 @@
+require('dotenv').config()
+
 const express = require('express')
 const cors = require('cors')
 var morgan = require('morgan')
+const mongoose = require('mongoose')
+const Person = require('./models/person')
 
 const app = express()
 app.use(express.json())
 app.use(cors())
 app.use(express.static('build'))
 
+mongoose.connect(process.env.MONGODB_URI)
+  .then(result => {
+    console.log('connected to MongoDB')
+  })
+  .catch((error) => {
+    console.log('error connecting to MongoDB:', error.message)
+  })
+  
 app.use(
   morgan(function (tokens, req, res) {
     return [
@@ -19,8 +31,6 @@ app.use(
     ].join(' ')
   })
 )
-
-const generateId = () => Math.floor(Math.random()*1000)
 
 let persons = 
 [
@@ -54,17 +64,16 @@ let persons =
   })
   
   app.get('/api/persons', (req, res) => {
-    res.json(persons)
+    Person.find({}).then(notes => {
+      res.json(notes)
+    })    
   })
 
   app.get('/api/persons/:id', (request, response) => {
     const id = request.params.id
-    const person = persons.find(p => p.id === +id)
-    if (person) {
+    Person.findById(id).then(person => {
       response.json(person)
-    } else {
-      response.status(404).end()
-    }    
+    })
   })  
 
   app.delete('/api/persons/:id', (request, response) => {
@@ -85,19 +94,13 @@ let persons =
         error: 'name or number is missing' 
       })
     }
-    const foundPerson = persons.find( p => p.name === body.name) 
-    if(foundPerson) {
-        return response.status(400).json({ 
-            error: 'name must be unique' 
-          })
-    }
-    const newPerson = {
+    const person = new Person({
       name: body.name,
       number: body.number,
-      id: generateId(),
-    }
-    persons.push(newPerson)
-    response.json(newPerson)
+    })
+    person.save().then(savedPerson => { 
+      response.json(savedPerson)
+    })
   })  
 
   const unknownEndpoint = (request, response) => {
