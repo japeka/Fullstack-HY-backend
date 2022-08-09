@@ -18,7 +18,7 @@ mongoose.connect(process.env.MONGODB_URI)
   .catch((error) => {
     console.log('error connecting to MongoDB:', error.message)
   })
-  
+
 app.use(
   morgan(function (tokens, req, res) {
     return [
@@ -64,8 +64,8 @@ let persons =
   })
   
   app.get('/api/persons', (req, res) => {
-    Person.find({}).then(notes => {
-      res.json(notes)
+    Person.find({}).then(persons => {
+      res.json(persons)
     })    
   })
 
